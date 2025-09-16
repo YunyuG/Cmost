@@ -1,7 +1,6 @@
 clean:
 	rm -r build dist
-	rm -r src/*.egg-info
-	rm -r __pycache__
+	rm -r src/*.egg-info src/cmost/__pycache__
 
 build:
 	pip3 uninstall cmost -y
