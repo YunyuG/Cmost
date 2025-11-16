@@ -15,13 +15,13 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   build:
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.11', '3.12', '3.13',"3.14"] #delete 3.10
         os: [ubuntu-latest, macos-latest,windows-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
@@ -38,7 +38,7 @@ jobs:
     - name: Build dist and test with pytest
       if: matrix.os != 'windows-latest'
       run: |
-        python -m build
+        python -m build .
         pip install dist/*.whl
         pytest
     - name: Build dist and test with pytest on Windows
