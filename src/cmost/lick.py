@@ -78,7 +78,7 @@ def compute_LickLineIndices(
     flux: np.ndarray = None,
     LickLineIndex_table_path: str | None = None,
 ) -> dict | pd.Series:  # type:ignore
-    if not ((wavelength is None or flux is None) ^ (fits_data is None)):
+    if not ((wavelength is not None and flux is not None) ^ (fits_data is not None)):
         raise ValueError("must provide either `wavelength` and `flux` or `fits_data`")
 
     if LickLineIndex_table_path is None:

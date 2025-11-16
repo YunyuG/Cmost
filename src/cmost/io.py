@@ -56,7 +56,7 @@ class FitsData:
     @classmethod
     def from_hdu(cls, hdu):
         header: dict = dict()
-        
+
         for key, value in zip(hdu[0].header.keys(), hdu[0].header.values()):
             if "COMMENT" in key or len(key) < 1:
                 continue
@@ -81,8 +81,6 @@ class FitsData:
         flux = np.asarray(data[0], dtype=float)
         andmask = np.asarray(data[3], dtype=int)
         orimask = np.asarray(data[4], dtype=int)
-
-        
 
         if np.sum(orimask) > 0 or np.sum(andmask) > 0:
             header["exists_bad_points"] = 1
