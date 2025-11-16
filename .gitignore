@@ -34,6 +34,8 @@ dmypy.json
 # fits.gz
 *.fits.gz
 
+/dist
+
 .coverage
 # viztracer
 result.json
