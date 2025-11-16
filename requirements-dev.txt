@@ -5,3 +5,4 @@ coverage
 pandas
 matplotlib
 ruff
+build
