@@ -37,3 +37,5 @@ dmypy.json
 .coverage
 # viztracer
 result.json
+!tests/data/spec-55859-F5902_sp01-001_dr7.fits.gz
+!tests/data/spec-55859-F5902_sp01-013_dr8.fits.gz
