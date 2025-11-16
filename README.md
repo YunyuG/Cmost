@@ -2,8 +2,13 @@
 <img src="docs/ico.png" width="90" height="90" align="left" />
 
 # CMOST: A Python Toolkit for LAMOST Astronomical Data
+![Scrutinizer build (GitHub/Bitbucket)](https://img.shields.io/scrutinizer/build/g/YunyuG/Cmost)
 ![Static Badge](https://img.shields.io/pypi/pyversions/cmost)
 [![PyPI Version](https://img.shields.io/pypi/v/cmost?color=blue)](https://pypi.org/project/cmost/)
+![Codecov](https://img.shields.io/codecov/c/github/YunyuG/Cmost)
+![GitHub License](https://img.shields.io/github/license/YunyuG/Cmost)
+
+
 
 CMOST is a Python toolkit specifically designed for processing FITS files from LAMOST astronomical telescope observations. At its core, it's a secondary encapsulation of `astropy`, offering efficient and user-friendly data parsing and basic analysis capabilities.
 

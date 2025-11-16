@@ -33,3 +33,7 @@ dmypy.json
 
 # fits.gz
 *.fits.gz
+
+.coverage
+# viztracer
+result.json

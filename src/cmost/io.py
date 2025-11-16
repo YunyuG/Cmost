@@ -29,21 +29,21 @@ class FitsData:
         else:
             return self.header[key]
 
-    def minmax(self, range_: tuple = (0, 1)) -> FitsData:
+    def minmax(self, range_: tuple = (0, 1)) -> "FitsData":
         new_flux = minmax_function(self.flux, range_)
         return FitsData(self.wavelength, new_flux, self.header)
 
-    def align(self, aligned_wavelength: np.ndarray) -> FitsData:
+    def align(self, aligned_wavelength: np.ndarray) -> "FitsData":
         new_flux = align_wavelength(self.wavelength, self.flux, aligned_wavelength)
         new_wavelength = aligned_wavelength
         return FitsData(new_wavelength, new_flux, self.header)
 
-    def remove_redshift(self) -> FitsData:
+    def remove_redshift(self) -> "FitsData":
         Z = self.header["z"]
         new_flux = remove_redshift(self.wavelength, self.flux, Z)
         return FitsData(self.wavelength, new_flux, self.header)
 
-    def median_filter(self, size: int = 7) -> FitsData:
+    def median_filter(self, size: int = 7) -> "FitsData":
         new_flux = median_filter(self.flux, size)
         return FitsData(self.wavelength, new_flux, self.header)
 
@@ -90,7 +90,7 @@ class FitsData:
         return cls(wavelength, flux, header)
 
     def __repr__(self):
-        return f"FitsData(filename={self.header['filename']})"
+        return f"FitsData<filename={self.header['filename']}>"
 
 
 def plot_spectrum(

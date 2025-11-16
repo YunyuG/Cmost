@@ -1,6 +1,7 @@
 pytest
+pytest-cov
+codecov
+coverage
 pandas
-Sphinx
-sphinx-rtd-theme
+matplotlib
 ruff
-viztracer

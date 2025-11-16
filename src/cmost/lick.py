@@ -11,6 +11,12 @@ from .io import FitsData
 
 __all__ = ["compute_LickLineIndices"]
 
+PANDAS_INSTALLED: bool = True
+try:
+    import pandas as pd  # type:ignore
+except ImportError:
+    PANDAS_INSTALLED = False
+
 LickLineIndex = namedtuple(
     "LickLineIndex",
     [
@@ -43,6 +49,15 @@ def _read_LickLineIndex(fp: str) -> list[LickLineIndex]:
     with open(fp, "r", encoding="utf-8") as file:
         next(file)
         csv_file = csv.DictReader(file, col_names, delimiter=" ")
+        v_error = ValueError(
+                "The lick line index table does not meet the program's expectations."
+                "You need to ensure that the table format is as follows:\n\n"
+                "##   Index band       blue continuum   red continuum  Units name\n"
+                "01 4142.125 4177.125 4080.125 4117.625 4244.125 4284.125 1 CN_1\n"
+                "02 4142.125 4177.125 4083.875 4096.375 4244.125 4284.125 1 CN_2\n"
+                "03 4222.250 4234.750 4211.000 4219.750 4241.000 4251.000 0 Ca4227\n"
+                "04 4281.375 4316.375 4266.375 4282.625 4318.875 4335.125 0 G4300\n"
+            ) 
         try:
             for row in csv_file:
                 row_item: LickLineIndex = LickLineIndex(
@@ -55,19 +70,11 @@ def _read_LickLineIndex(fp: str) -> list[LickLineIndex]:
                     int(row["units"]),
                     row["index_name"],
                 )
-
-                # row_item = LickLineIndex(**{c:row[c] for c in col_names if c!="num"})
                 res.append(row_item)
         except Exception as e:
-            raise ValueError(
-                "The lick line index table does not meet the program's expectations."
-                "You need to ensure that the table format is as follows:\n\n"
-                "##   Index band       blue continuum   red continuum  Units name\n"
-                "01 4142.125 4177.125 4080.125 4117.625 4244.125 4284.125 1 CN_1\n"
-                "02 4142.125 4177.125 4083.875 4096.375 4244.125 4284.125 1 CN_2\n"
-                "03 4222.250 4234.750 4211.000 4219.750 4241.000 4251.000 0 Ca4227\n"
-                "04 4281.375 4316.375 4266.375 4282.625 4318.875 4335.125 0 G4300\n"
-            ) from e
+            raise v_error from e
+    if len(res)==0:
+        raise v_error
     return res
 
 
@@ -96,11 +103,6 @@ def compute_LickLineIndices(
         wavelength = np.asarray(wavelength)
         flux = np.asarray(flux)
 
-    PANDAS_INSTALLED: bool = True
-    try:
-        import pandas as pd  # type:ignore
-    except ImportError:
-        PANDAS_INSTALLED = False
     if not PANDAS_INSTALLED:
         res = dict()
     else:
@@ -129,7 +131,7 @@ def compute_LickLineIndices(
 
 def compute_FI_lambda_FC_lambda(
     wavelength: np.ndarray, flux: np.ndarray, lick_line_index: LickLineIndex
-):
+) -> tuple[np.ndarray]:
     func = interpolate.interp1d(wavelength, flux, kind="linear")
 
     wavelength_FI_lambda, flux_FI_lambda = extract_one_spectrum(
@@ -177,7 +179,7 @@ def compute_FI_lambda_FC_lambda(
     return wavelength_FI_lambda, flux_FI_lambda, wavelength_FC_lambda, flux_FC_lambda
 
 
-def compute_mean_flux(wavelength: np.ndarray, flux: np.ndarray) -> tuple[float]:
+def compute_mean_flux(wavelength: np.ndarray, flux: np.ndarray) -> float:
     lambda_1 = np.min(wavelength)
     lambda_2 = np.max(wavelength)
     mean_flux = integrate.trapezoid(flux, wavelength) / (lambda_2 - lambda_1)
@@ -190,14 +192,9 @@ def extract_one_spectrum(
     index_band_start: float,
     index_band_end: float,
     func: callable = None,
-):
-    # if func is None:
-    #     func = interpolate.interp1d(wavelength, flux, kind="linear")
-
-    index_ = np.where((wavelength > index_band_start) & (wavelength < index_band_end))[
-        0
-    ]
-
+) -> tuple[np.ndarray]:
+    select_condition = (wavelength > index_band_start) & (wavelength < index_band_end)
+    index_ = np.where(select_condition)[0]
     wavelength_intercept = wavelength[index_]
     flux_intercept = flux[index_]
 

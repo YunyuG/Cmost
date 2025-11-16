@@ -1,3 +1,8 @@
+# Copyright(C) YunyuG 2025. All rights reserved.
+# Created at Sat Nov 15 21:14:23 CST 2025.
+
+__all__ = ["FitsDownloader"]
+
 import os
 import threading
 from http.client import HTTPResponse
@@ -43,7 +48,7 @@ class FitsDownloader:
     def download_fits_use_MultThreading(
         self, obsid_list: list, threading_nums: int = 4
     ):
-        threads: list[FitsDownloaderThread] = []
+        threads: list[_FitsDownloaderThread] = []
         every_block_task_num, change_task_num = divmod(len(obsid_list), threading_nums)
 
         for i in range(threading_nums):
@@ -53,7 +58,7 @@ class FitsDownloader:
                 if i == threading_nums - 1
                 else (i + 1) * every_block_task_num
             )
-            thread = FitsDownloaderThread(self, obsid_list[start_index:end_index])
+            thread = _FitsDownloaderThread(self, obsid_list[start_index:end_index])
             threads.append(thread)
 
         try:
@@ -65,7 +70,6 @@ class FitsDownloader:
                     thread.join(timeout=1)
 
         except KeyboardInterrupt:
-            # print("ctril")
             for thread in threads:
                 thread.shutdown()
             for thread in threads:
@@ -73,9 +77,9 @@ class FitsDownloader:
 
     def download_fits(self, obsid: int) -> None:
         url = f"{self.public_url}?obsid={obsid}&TOKEN={self.TOKEN}"
-        request = Request(url, method="GET")
+        request = Request(url, method="GET",unverifiable=True)
         # FIXME: The ftp server of LAMOST may occurs some errors.
-        response: HTTPResponse = urlopen(request, timeout=25)
+        response: HTTPResponse = urlopen(request)
         # You should set timeout whether the thread will be locked
         fits_name = response.headers["Content-Disposition"].split("=")[1]
 
@@ -88,7 +92,7 @@ class FitsDownloader:
                 file.write(chunk)
 
 
-class FitsDownloaderThread(threading.Thread):
+class _FitsDownloaderThread(threading.Thread):
     def __init__(self, fits_downloader: "FitsDownloader", obsid_list: list[str]):
         self.fits_downloader = fits_downloader
         self.obsid_list = obsid_list

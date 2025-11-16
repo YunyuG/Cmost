@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-
+requires = ["setuptools>=61.0", "wheel"]
 [project]
 name = "cmost"
 version = "0.1.0"
@@ -9,7 +9,7 @@ authors = [
     ,{name = "Peng Tang",email="1941275544@qq.com"}]
 
 description = "A processing tool for FITS files related to LAMOST"
-license = ""
+license = "Apache-2.0"
 license-files = ["LICENCE"]
 readme = "readme.md"
 requires-python = ">=3.10"
@@ -40,4 +40,17 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Operating System :: Microsoft ::Mac"
+]
+
+[tool.ruff.lint]
+select = ["F"]
+ignore = ["F401"]
+
+# pyproject.toml
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=cmost",
+    "--cov-report=xml",
+    "--cov-report=html",
+    "--cov-report=term-missing"
 ]
