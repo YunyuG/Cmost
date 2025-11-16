@@ -1,25 +1,23 @@
-# !/usr/bin/env python3
-# Copyright (C) 2025 YunyuG
+# Copyright(C) YunyuG 2025. All rights reserved.
+# Created at Sat Nov 15 21:14:23 CST 2025.
 
-from __future__ import annotations
-
-import numpy
+import numpy as np
 from scipy import interpolate, signal
 
 
-def minmax_function(flux, range_: tuple) -> numpy.ndarray:
-    flux = range_[0] + (range_[1] - range_[0]) * (flux - numpy.min(flux)) / (
-        numpy.max(flux) - numpy.min(flux)
+def minmax_function(flux, range_: tuple) -> np.ndarray:
+    flux = range_[0] + (range_[1] - range_[0]) * (flux - np.min(flux)) / (
+        np.max(flux) - np.min(flux)
     )
     return flux
 
 
 def align_wavelength(
-    wavelength: numpy.ndarray,
-    flux: numpy.ndarray,
-    aligned_wavelength: numpy.ndarray,
+    wavelength: np.ndarray,
+    flux: np.ndarray,
+    aligned_wavelength: np.ndarray,
     **kwargs,
-) -> tuple[numpy.ndarray]:
+) -> np.ndarray:
     kind = kwargs.get("kind", "linear")
     F = interpolate.interp1d(
         wavelength, flux, kind=kind, bounds_error=False, fill_value=(flux[0], flux[-1])
@@ -29,8 +27,8 @@ def align_wavelength(
 
 
 def remove_redshift(
-    wavelength_obs: numpy.ndarray, flux_rest: numpy.ndarray, Z: float, **kwargs
-) -> tuple[numpy.ndarray]:
+    wavelength_obs: np.ndarray, flux_rest: np.ndarray, Z: float, **kwargs
+) -> np.ndarray:
     kind = kwargs.get("kind", "linear")
     wavelength_rest = wavelength_obs / (1 + Z)
     F = interpolate.interp1d(
@@ -43,5 +41,5 @@ def remove_redshift(
     return F(wavelength_obs)
 
 
-def median_filter(flux: numpy.ndarray, size: int) -> numpy.ndarray:
+def median_filter(flux: np.ndarray, size: int) -> np.ndarray:
     return signal.medfilt(flux, size)

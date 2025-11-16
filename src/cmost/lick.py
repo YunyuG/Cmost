@@ -1,100 +1,113 @@
-# !/usr/bin/env python3
-# Copyright (C) 2025 YunyuG
+# Copyright(C) YunyuG 2025. All rights reserved.
+# Created at Sat Nov 15 21:14:23 CST 2025.
 
-from __future__ import annotations
-
-import re
-import numpy
-
-from pathlib import Path
-from dataclasses import dataclass
+import os
+import csv
+import numpy as np
 from functools import cache
-
+from collections import namedtuple
 from scipy import interpolate, integrate
 from .io import FitsData
 
-__all__ = ["read_LickLineIndex", "compute_LickLineIndices"]
+__all__ = ["compute_LickLineIndices"]
 
+PANDAS_INSTALLED: bool = True
+try:
+    import pandas as pd  # type:ignore
+except ImportError:
+    PANDAS_INSTALLED = False
 
-@dataclass
-class LickLineIndex:
-    index_band_start: float
-    index_band_end: float
-    blue_continuum_start: float
-    blue_continuum_end: float
-    red_continuum_start: float
-    red_continuum_end: float
-    units: int
-    index_name: str
+LickLineIndex = namedtuple(
+    "LickLineIndex",
+    [
+        "index_band_start",
+        "index_band_end",
+        "blue_continuum_start",
+        "blue_continuum_end",
+        "red_continuum_start",
+        "red_continuum_end",
+        "units",
+        "index_name",
+    ],
+)
 
 
 @cache
-def read_LickLineIndex(fp: str) -> list[LickLineIndex]:
-    res = []
-    pattern = r"[\d+._A-z]+"
+def _read_LickLineIndex(fp: str) -> list[LickLineIndex]:
+    col_names: list = [
+        "num",
+        "index_band_start",
+        "index_band_end",
+        "blue_continuum_start",
+        "blue_continuum_end",
+        "red_continuum_start",
+        "red_continuum_end",
+        "units",
+        "index_name",
+    ]
+    res: list = []
     with open(fp, "r", encoding="utf-8") as file:
-        try:
-            for line in file.readlines():
-                if "#" in line:
-                    continue
-                else:
-                    f = re.findall(pattern, line)[1:]  # ignore the index
-                    l = LickLineIndex(
-                        index_band_start=float(f[0]),
-                        index_band_end=float(f[1]),
-                        blue_continuum_start=float(f[2]),
-                        blue_continuum_end=float(f[3]),
-                        red_continuum_start=float(f[4]),
-                        red_continuum_end=float(f[5]),
-                        units=int(f[6]),
-                        index_name=f[7],
-                    )
-                    res.append(l)
-        except Exception as e:
-            raise ValueError(
+        next(file)
+        csv_file = csv.DictReader(file, col_names, delimiter=" ")
+        v_error = ValueError(
                 "The lick line index table does not meet the program's expectations."
                 "You need to ensure that the table format is as follows:\n\n"
-                "##        Index band       blue continuum     red continuum Units name\n"
-                "01    4142.125 4177.125  4080.125 4117.625  4244.125 4284.125 1  CN_1\n"
-                "02    4142.125 4177.125  4083.875 4096.375  4244.125 4284.125 1  CN_2\n"
-                "03    4222.250 4234.750  4211.000 4219.750  4241.000 4251.000 0  Ca4227\n"
-                "04    4281.375 4316.375  4266.375 4282.625  4318.875 4335.125 0  G4300\n"
-                "05    4369.125 4420.375  4359.125 4370.375  4442.875 4455.375 0  Fe4383\n"
-                "06    4452.125 4474.625  4445.875 4454.625  4477.125 4492.125 0  Ca4455\n"
-                "...          ...                ...                ...       ...   ..."
-            ) from e
+                "##   Index band       blue continuum   red continuum  Units name\n"
+                "01 4142.125 4177.125 4080.125 4117.625 4244.125 4284.125 1 CN_1\n"
+                "02 4142.125 4177.125 4083.875 4096.375 4244.125 4284.125 1 CN_2\n"
+                "03 4222.250 4234.750 4211.000 4219.750 4241.000 4251.000 0 Ca4227\n"
+                "04 4281.375 4316.375 4266.375 4282.625 4318.875 4335.125 0 G4300\n"
+            ) 
+        try:
+            for row in csv_file:
+                row_item: LickLineIndex = LickLineIndex(
+                    float(row["index_band_start"]),
+                    float(row["index_band_end"]),
+                    float(row["blue_continuum_start"]),
+                    float(row["blue_continuum_end"]),
+                    float(row["red_continuum_start"]),
+                    float(row["red_continuum_end"]),
+                    int(row["units"]),
+                    row["index_name"],
+                )
+                res.append(row_item)
+        except Exception as e:
+            raise v_error from e
+    if len(res)==0:
+        raise v_error
     return res
-
-
-# print(read_LickLineIndex())
 
 
 def compute_LickLineIndices(
     fits_data: FitsData = None,
     *,
-    wavelength: numpy.ndarray = None,
-    flux: numpy.ndarray = None,
-    LickLineIndex_table: list[LickLineIndex] = None,
-) -> dict:
-    if (wavelength is None or flux is None) and fits_data is None:
+    wavelength: np.ndarray = None,
+    flux: np.ndarray = None,
+    LickLineIndex_table_path: str | None = None,
+) -> dict | pd.Series:  # type:ignore
+    if not ((wavelength is not None and flux is not None) ^ (fits_data is not None)):
         raise ValueError("must provide either `wavelength` and `flux` or `fits_data`")
 
-    if fits_data is not None and (wavelength is not None or flux is not None):
-        raise ValueError("must provide either `wavelength` and `flux` or `fits_data`")
-
-    if LickLineIndex_table is None:
-        LickLineIndex_table = read_LickLineIndex(
-            str(Path(__file__).parent / Path("assets") / Path("index.table"))
+    if LickLineIndex_table_path is None:
+        LickLineIndex_table_path = os.path.join(
+            os.path.join(os.path.abspath(os.path.join(__file__, os.pardir)), "assets"),
+            "index.table",
         )
 
-    if fits_data is not None:
-        wavelength = numpy.asarray(fits_data.wavelength)
-        flux = numpy.asarray(fits_data.flux)
-    else:
-        wavelength = numpy.asarray(wavelength)
-        flux = numpy.asarray(flux)
+    LickLineIndex_table = _read_LickLineIndex(LickLineIndex_table_path)
 
-    res = dict()
+    if fits_data is not None:
+        wavelength = np.asarray(fits_data.wavelength)
+        flux = np.asarray(fits_data.flux)
+    else:
+        wavelength = np.asarray(wavelength)
+        flux = np.asarray(flux)
+
+    if not PANDAS_INSTALLED:
+        res = dict()
+    else:
+        res = pd.Series()
+
     for lick_line_index in LickLineIndex_table:
         (wavelength_FI_lambda, flux_FI_lambda, wavelength_FC_lambda, flux_FC_lambda) = (
             compute_FI_lambda_FC_lambda(wavelength, flux, lick_line_index)
@@ -117,8 +130,8 @@ def compute_LickLineIndices(
 
 
 def compute_FI_lambda_FC_lambda(
-    wavelength: numpy.ndarray, flux: numpy.ndarray, lick_line_index: LickLineIndex
-):
+    wavelength: np.ndarray, flux: np.ndarray, lick_line_index: LickLineIndex
+) -> tuple[np.ndarray]:
     func = interpolate.interp1d(wavelength, flux, kind="linear")
 
     wavelength_FI_lambda, flux_FI_lambda = extract_one_spectrum(
@@ -160,49 +173,36 @@ def compute_FI_lambda_FC_lambda(
         x=[blue_wavelength_mid, red_wavelength_mid],
         kind="linear",
     )
-    # FC_lambda = Spectrum(FI_lambda.wavelength
-    #                      ,F(FI_lambda.wavelength))
     wavelength_FC_lambda = wavelength_FI_lambda.copy()
     flux_FC_lambda = F(wavelength_FC_lambda)
 
     return wavelength_FI_lambda, flux_FI_lambda, wavelength_FC_lambda, flux_FC_lambda
 
 
-def compute_mean_flux(wavelength: numpy.ndarray, flux: numpy.ndarray) -> tuple[float]:
-    lambda_1 = numpy.min(wavelength)
-    lambda_2 = numpy.max(wavelength)
+def compute_mean_flux(wavelength: np.ndarray, flux: np.ndarray) -> float:
+    lambda_1 = np.min(wavelength)
+    lambda_2 = np.max(wavelength)
     mean_flux = integrate.trapezoid(flux, wavelength) / (lambda_2 - lambda_1)
     return mean_flux
 
 
 def extract_one_spectrum(
-    wavelength: numpy.ndarray,
-    flux: numpy.ndarray,
+    wavelength: np.ndarray,
+    flux: np.ndarray,
     index_band_start: float,
     index_band_end: float,
     func: callable = None,
-):
-    if func is None:
-        func = interpolate.interp1d(wavelength, flux, kind="linear")
-
-    index_ = numpy.where(
-        (wavelength > index_band_start) & (wavelength < index_band_end)
-    )[0]
-
+) -> tuple[np.ndarray]:
+    select_condition = (wavelength > index_band_start) & (wavelength < index_band_end)
+    index_ = np.where(select_condition)[0]
     wavelength_intercept = wavelength[index_]
     flux_intercept = flux[index_]
 
-    # low effecency
-    # wavelength_intercept = np.insert(wavelength_intercept,[0,n]
-    #                                                 ,[Wavelength_start,Wavelength_end])
-    # flux_intercept = np.insert(flux_intercept,[0,n]
-    #                                         ,[func(Wavelength_start),func(Wavelength_end)])
-
-    wavelength_intercept = numpy.concatenate(
+    wavelength_intercept = np.concatenate(
         ([index_band_start], wavelength_intercept, [index_band_end])
     )
 
-    flux_intercept = numpy.concatenate(
+    flux_intercept = np.concatenate(
         ([func(index_band_start)], flux_intercept, [func(index_band_end)])
     )
     return wavelength_intercept, flux_intercept
@@ -219,9 +219,9 @@ def compute_EW(
 def compute_Mag(
     wavelength_FI_lambda, flux_FI_lambda, wavelength_FC_lambda, flux_FC_lambda
 ) -> float:
-    lambda_1 = numpy.min(wavelength_FI_lambda)
-    lambda_2 = numpy.max(wavelength_FI_lambda)
-    return -2.5 * numpy.log10(
+    lambda_1 = np.min(wavelength_FI_lambda)
+    lambda_2 = np.max(wavelength_FI_lambda)
+    return -2.5 * np.log10(
         integrate.trapezoid(flux_FI_lambda / flux_FC_lambda, wavelength_FI_lambda)
         / (lambda_2 - lambda_1)
     )

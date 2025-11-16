@@ -1,12 +1,10 @@
-# !/usr/bin/env python3
-# Copyright (C) 2025  YunyuG
+# Copyright(C) YunyuG 2025. All rights reserved.
+# Created at Sat Nov 15 21:14:23 CST 2025.
 
-from __future__ import annotations
-
-__all__ = ["read_fits", "read_header"]
+__all__ = ["read_fits"]
 
 import re
-import numpy
+import numpy as np
 
 from astropy.io import fits
 from .processing import (
@@ -18,7 +16,7 @@ from .processing import (
 
 
 class FitsData:
-    def __init__(self, wavelength: numpy.ndarray, flux: numpy.ndarray, header=None):
+    def __init__(self, wavelength: np.ndarray, flux: np.ndarray, header: dict):
         self.wavelength = wavelength
         self.flux = flux
         self.header = header
@@ -31,21 +29,21 @@ class FitsData:
         else:
             return self.header[key]
 
-    def minmax(self, range_: tuple = (0, 1)) -> FitsData:
+    def minmax(self, range_: tuple = (0, 1)) -> "FitsData":
         new_flux = minmax_function(self.flux, range_)
         return FitsData(self.wavelength, new_flux, self.header)
 
-    def align(self, aligned_wavelength: numpy.ndarray) -> FitsData:
+    def align(self, aligned_wavelength: np.ndarray) -> "FitsData":
         new_flux = align_wavelength(self.wavelength, self.flux, aligned_wavelength)
         new_wavelength = aligned_wavelength
         return FitsData(new_wavelength, new_flux, self.header)
 
-    def remove_redshift(self) -> FitsData:
+    def remove_redshift(self) -> "FitsData":
         Z = self.header["z"]
         new_flux = remove_redshift(self.wavelength, self.flux, Z)
         return FitsData(self.wavelength, new_flux, self.header)
 
-    def median_filter(self, size: int = 7) -> FitsData:
+    def median_filter(self, size: int = 7) -> "FitsData":
         new_flux = median_filter(self.flux, size)
         return FitsData(self.wavelength, new_flux, self.header)
 
@@ -57,7 +55,13 @@ class FitsData:
 
     @classmethod
     def from_hdu(cls, hdu):
-        header = Header.from_hdu(hdu)
+        header: dict = dict()
+
+        for key, value in zip(hdu[0].header.keys(), hdu[0].header.values()):
+            if "COMMENT" in key or len(key) < 1:
+                continue
+            header[key.lower()] = value
+
         match = re.search(r"DR(\d{1,2})", header["data_v"])
         dr_version = int(match.group(1))
 
@@ -70,58 +74,35 @@ class FitsData:
             coeff0 = header["coeff0"]
             coeff1 = header["coeff1"]
             pixel_num = header["naxis1"]
-            wavelength = 10 ** (coeff0 + numpy.arange(pixel_num) * coeff1)
+            wavelength = 10 ** (coeff0 + np.arange(pixel_num) * coeff1)
         else:
-            wavelength = numpy.asarray(data[2], dtype=float)
+            wavelength = np.asarray(data[2], dtype=float)
 
-        flux = numpy.asarray(data[0], dtype=float)
-        andmask = numpy.asarray(data[3], dtype=int)
-        orimask = numpy.asarray(data[4], dtype=int)
+        flux = np.asarray(data[0], dtype=float)
+        andmask = np.asarray(data[3], dtype=int)
+        orimask = np.asarray(data[4], dtype=int)
 
-        if numpy.sum(orimask) > 0 or numpy.sum(andmask) > 0:
+        if np.sum(orimask) > 0 or np.sum(andmask) > 0:
             header["exists_bad_points"] = 1
         else:
             header["exists_bad_points"] = 0
 
-        if abs(float(header["z"])) >= 1:
-            header["unusual_redshift"] = 1
-        else:
-            header["unusual_redshift"] = 0
-
         return cls(wavelength, flux, header)
 
     def __repr__(self):
-        return f"FitsData(filename={self.header['filename']})"
-
-
-class Header(dict):
-    def __init__(self, keys, values):
-        super().__init__(zip(keys, values))
-
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-
-    def __getitem__(self, key):
-        return super().__getitem__(key)
-
-    def __repr__(self):
-        return f"Header({super().__repr__()})"
-
-    @classmethod
-    def from_hdu(cls, hdu):
-        keys = []
-        values = []
-        for key, value in zip(hdu[0].header.keys(), hdu[0].header.values()):
-            if "COMMENT" in key or len(key) < 1:
-                continue
-            keys.append(key.lower())
-            values.append(value)
-        return cls(keys, values)
+        return f"FitsData<filename={self.header['filename']}>"
 
 
 def plot_spectrum(
-    wavelength: numpy.ndarray, flux: numpy.ndarray, ax=None, is_show: bool = False
+    wavelength: np.ndarray, flux: np.ndarray, ax=None, is_show: bool = False
 ):
+    try:
+        import matplotlib.pyplot as plt  # lazy import
+    except ImportError as e:
+        raise ImportError(
+            "You should install 'matplotlib' to use this method\n"
+            "pip3 install matplotlib\n"
+        ) from e
     rc_s = {
         "font.family": "Arial",
         "font.size": 14,
@@ -129,25 +110,19 @@ def plot_spectrum(
         "ytick.labelsize": 14,
         "mathtext.fontset": "cm",
     }
-    import matplotlib.pyplot  # lazy import
 
-    matplotlib.pyplot.rcParams.update(rc_s)
+    plt.rcParams.update(rc_s)
     if ax:
         ax.plot(wavelength, flux)
     else:
-        matplotlib.pyplot.plot(wavelength, flux)
+        plt.plot(wavelength, flux)
 
     if is_show:
-        matplotlib.pyplot.xlabel(r"Wavelength($\AA$)")
-        matplotlib.pyplot.ylabel("Flux")
-        matplotlib.pyplot.show()
+        plt.xlabel(r"Wavelength($\AA$)")
+        plt.ylabel("Flux")
+        plt.show()
 
 
 def read_fits(fits_path: str) -> FitsData:
     with fits.open(fits_path) as hdu:
         return FitsData.from_hdu(hdu)
-
-
-def read_header(fits_path: str) -> Header:
-    with fits.open(fits_path) as hdu:
-        return Header.from_hdu(hdu)

@@ -1,28 +1,23 @@
 [build-system]
-requires = ["setuptools >= 77.0.3"]
 build-backend = "setuptools.build_meta"
-
+requires = ["setuptools>=61.0", "wheel"]
 [project]
 name = "cmost"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
     {name = "Yunyu Guo",email="guoyunyu2017@outlook.com"}
-    ,{name = "Peng Tang",email="1941275544@qq.com"}
-    ,{name = "Qi Li",email="2119251347@qq.com"}]
+    ,{name = "Peng Tang",email="1941275544@qq.com"}]
+
 description = "A processing tool for FITS files related to LAMOST"
-license = "GPL-3.0-or-later"
+license = "Apache-2.0"
 license-files = ["LICENCE"]
 readme = "readme.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 dependencies = [
   "numpy>=1.23"
   ,"scipy>=1.8"
   ,"astropy>=6.0"
-  ,"matplotlib"
-  ,"aiohttp<=3.8.3; python_version >= '3.9' and python_version < '3.10'"
-  ,"aiohttp>3.8.3; python_version>='3.10'"
-  ,"aiofiles"
 ]
 
 classifiers = [
@@ -30,19 +25,32 @@ classifiers = [
   #   3 - Alpha
   #   4 - Beta
   #   5 - Production/Stable
-  "Development Status :: 4 - Beta",
+  "Development Status :: 5 - Production",
 
   # Indicate who your project is intended for
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Build Tools",
 
   # Specify the Python versions you support here.
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Operating System :: POSIX :: Linux",
-  "Operating System :: Microsoft :: Windows"
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: Microsoft ::Mac"
+]
+
+[tool.ruff.lint]
+select = ["F"]
+ignore = ["F401"]
+
+# pyproject.toml
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=cmost",
+    "--cov-report=xml",
+    "--cov-report=html",
+    "--cov-report=term-missing"
 ]
