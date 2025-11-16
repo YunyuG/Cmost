@@ -2,7 +2,7 @@
 build-backend = "setuptools.build_meta"
 requires = ["setuptools>=61.0", "wheel"]
 [project]
-name = "cmost"
+name = "Cmost"
 version = "0.1.0"
 authors = [
     {name = "Yunyu Guo",email="guoyunyu2017@outlook.com"}
@@ -46,11 +46,3 @@ classifiers = [
 select = ["F"]
 ignore = ["F401"]
 
-# pyproject.toml
-[tool.pytest.ini_options]
-addopts = [
-    "--cov=cmost",
-    "--cov-report=xml",
-    "--cov-report=html",
-    "--cov-report=term-missing"
-]

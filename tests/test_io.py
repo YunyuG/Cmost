@@ -1,9 +1,9 @@
 # Copyright(C) YunyuG 2025. All rights reserved.
 # Created at Sat Nov 15 21:14:23 CST 2025.
 
+import cmost as cst
 import pytest
 import numpy as np
-import cmost as cst
 
 MATPLOTLIB_INSTALLED = True
 try:
