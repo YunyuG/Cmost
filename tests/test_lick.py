@@ -1,8 +1,8 @@
 # Copyright(C) YunyuG 2025. All rights reserved.
 # Created at Sat Nov 15 21:14:23 CST 2025.
 
-import pytest
 import cmost as cst
+import pytest
 
 PANDAS_INSTALLED = True
 try:
