@@ -45,7 +45,7 @@ class FitsDownloader:
         if not os.path.exists(self.save_dir):
             os.mkdir(self.save_dir)
 
-    def download_fits_use_MultThreading(
+    def download_fits_use_MultiThreading(
         self, obsid_list: list, threading_nums: int = 4
     ):
         threads: list[_FitsDownloaderThread] = []
