@@ -60,7 +60,7 @@ fits_downloader.download_fits_use_MultiThreading(obsids)
 ```
 
 # LickIndices
-LickIndices is one of the important features to be use in machine learning.We alse implement it.
+LickIndices is one of the important features to be used in machine learning.We also implement it.
 ```python
 lick_indices = cst.lick.compute_LickLineIndices(test_fits_data)
 
