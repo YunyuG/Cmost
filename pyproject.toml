@@ -5,7 +5,7 @@ requires = ["setuptools>=61.0", "wheel"]
 name = "Cmost"
 version = "0.1.1"
 authors = [
-    {name = "Yunyu Guo",email="guoyunyu2017@outlook.com"}
+    {name = "Yunyu Guo",email="yunyug9527@outlook.com"}
     ,{name = "Peng Tang",email="1941275544@qq.com"}]
 
 description = "A processing tool for FITS files related to LAMOST"
