@@ -4,7 +4,7 @@ requires = ["setuptools", "wheel"]
 
 [project]
 name = "cmost"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
     {name = "Yunyu Guo",email="yunyug9527@outlook.com"}
     ,{name = "Peng Tang",email="1941275544@qq.com"}]

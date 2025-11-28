@@ -4,4 +4,4 @@ from .download import *
 
 __all__ = io.__all__ + download.__all__
 
-__version__ = "0.1.2"
+__version__ = "0.1.3"
