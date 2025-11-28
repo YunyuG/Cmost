@@ -18,9 +18,7 @@ requires-python = ">=3.10"
 dependencies = [
   "numpy>=1.23",
   "scipy>=1.8",
-  "astropy>=6.0",
-  "ruff>=0.14.6",
-  "pytest>=9.0.1",
+  "astropy>=6.0"
 ]
 
 classifiers = [
