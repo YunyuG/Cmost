@@ -97,7 +97,7 @@ def plot_spectrum(
     wavelength: np.ndarray, flux: np.ndarray, ax=None, is_show: bool = False
 ):
     try:
-        import matplotlib.pyplot as plt  # lazy import
+        import matplotlib.pyplot as plt  # type:ignore
     except ImportError as e:
         raise ImportError(
             "You should install 'matplotlib' to use this method\n"

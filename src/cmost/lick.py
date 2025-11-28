@@ -50,14 +50,14 @@ def _read_LickLineIndex(fp: str) -> list[LickLineIndex]:
         next(file)
         csv_file = csv.DictReader(file, col_names, delimiter=" ")
         v_error = ValueError(
-                "The lick line index table does not meet the program's expectations."
-                "You need to ensure that the table format is as follows:\n\n"
-                "##   Index band       blue continuum   red continuum  Units name\n"
-                "01 4142.125 4177.125 4080.125 4117.625 4244.125 4284.125 1 CN_1\n"
-                "02 4142.125 4177.125 4083.875 4096.375 4244.125 4284.125 1 CN_2\n"
-                "03 4222.250 4234.750 4211.000 4219.750 4241.000 4251.000 0 Ca4227\n"
-                "04 4281.375 4316.375 4266.375 4282.625 4318.875 4335.125 0 G4300\n"
-            ) 
+            "The lick line index table does not meet the program's expectations."
+            "You need to ensure that the table format is as follows:\n\n"
+            "##   Index band       blue continuum   red continuum  Units name\n"
+            "01 4142.125 4177.125 4080.125 4117.625 4244.125 4284.125 1 CN_1\n"
+            "02 4142.125 4177.125 4083.875 4096.375 4244.125 4284.125 1 CN_2\n"
+            "03 4222.250 4234.750 4211.000 4219.750 4241.000 4251.000 0 Ca4227\n"
+            "04 4281.375 4316.375 4266.375 4282.625 4318.875 4335.125 0 G4300\n"
+        )
         try:
             for row in csv_file:
                 row_item: LickLineIndex = LickLineIndex(
@@ -73,7 +73,7 @@ def _read_LickLineIndex(fp: str) -> list[LickLineIndex]:
                 res.append(row_item)
         except Exception as e:
             raise v_error from e
-    if len(res)==0:
+    if len(res) == 0:
         raise v_error
     return res
 
@@ -84,7 +84,7 @@ def compute_LickLineIndices(
     wavelength: np.ndarray = None,
     flux: np.ndarray = None,
     LickLineIndex_table_path: str | None = None,
-) -> dict | pd.Series:  # type:ignore
+):
     if not ((wavelength is not None and flux is not None) ^ (fits_data is not None)):
         raise ValueError("must provide either `wavelength` and `flux` or `fits_data`")
 

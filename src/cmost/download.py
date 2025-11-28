@@ -77,7 +77,7 @@ class FitsDownloader:
 
     def download_fits(self, obsid: int) -> None:
         url = f"{self.public_url}?obsid={obsid}&TOKEN={self.TOKEN}"
-        request = Request(url, method="GET",unverifiable=True)
+        request = Request(url, method="GET", unverifiable=True)
         # FIXME: The ftp server of LAMOST may occurs some errors.
         response: HTTPResponse = urlopen(request)
         # You should set timeout whether the thread will be locked
