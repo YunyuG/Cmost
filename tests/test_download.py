@@ -9,6 +9,7 @@ def obsid_txts():
         list = [i.strip() for i in f.readlines()]
         return list
     
+@pytest.skip("ci/ci is not supported")
 def test_download_fits(obsid_txts):
     obsid_txts:list
     fits_downloader = cst.FitsDownloader("dr7","v2.0")
@@ -20,6 +21,7 @@ def test_download_fits(obsid_txts):
     assert len(os.listdir("dr7_v2.0"))==len(obsid_txts)
     shutil.rmtree("dr7_v2.0")
 
+@pytest.skip("ci/ci is not supported")
 def test_download_fits_MultThread(obsid_txts):
     obsid_txts:list
     fits_downloader = cst.FitsDownloader("dr7","v2.0")
